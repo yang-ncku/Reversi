@@ -196,18 +196,44 @@ input{
   line-height:1;
   font-feature-settings:"ss01" on;
   height:var(--control-height);
-  width:9em;
   padding:0 var(--spacing-16) 0 var(--spacing-24);
   background:transparent;
   border:1px solid rgba(33,33,33,.1);
   border-radius:var(--radius-inputs);
   color:var(--color-ink);
-  text-transform:uppercase;
-  letter-spacing:0.05em;
   transition:border-color var(--motion);
 }
 input:focus{outline:none;border-color:var(--color-ink)}
 input::placeholder{color:var(--color-ash);letter-spacing:0}
+/* Room codes are always uppercase; ordinary text fields are not */
+#codeInput{width:9em;text-transform:uppercase;letter-spacing:0.05em}
+
+/* Segmented control — real radios keep arrow-key navigation and
+   screen-reader grouping for free; the chip is just the visible skin */
+.seg{border:0;margin:0;padding:0;min-width:0}
+.seg legend{padding:0}
+.seg-group{display:flex;gap:var(--spacing-8);flex-wrap:wrap;margin-top:var(--spacing-8)}
+.seg-opt{display:inline-flex;position:relative}
+.seg-opt input{position:absolute;width:1px;height:1px;opacity:0;margin:0}
+.seg-opt span{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  height:var(--control-height);
+  padding:0 var(--spacing-16);
+  border:1px solid var(--color-hairline);
+  border-radius:var(--radius-tags);
+  color:var(--color-ink);
+  font-size:var(--text-body);
+  line-height:1;
+  cursor:pointer;
+  transition:background-color var(--motion),border-color var(--motion);
+}
+.seg-opt span:hover{background:var(--surface-wash)}
+.seg-opt span:active{background:var(--color-hairline)}
+/* Selected is an active state — the one place the accent belongs here */
+.seg-opt input:checked + span{background:var(--surface-action);border-color:var(--surface-action)}
+.seg-opt input:focus-visible + span{outline:2px solid var(--color-ink);outline-offset:2px}
 
 .row{display:flex;gap:var(--spacing-8);flex-wrap:wrap;align-items:center}
 .mt{margin-top:var(--spacing-16)}
@@ -322,6 +348,58 @@ input::placeholder{color:var(--color-ash);letter-spacing:0}
   margin-bottom:var(--spacing-20);
 }
 
+/* ---------- Chat ---------- */
+.chat-log{
+  display:flex;
+  flex-direction:column;
+  gap:var(--spacing-12);
+  max-height:12rem;
+  overflow-y:auto;
+  margin:var(--spacing-12) 0 var(--spacing-16);
+  padding-right:var(--spacing-4);
+  overscroll-behavior:contain;
+}
+.chat-empty{
+  color:var(--color-ash);
+  font-size:var(--text-caption);
+  line-height:1.6;
+  letter-spacing:var(--tracking-caption);
+}
+.msg{display:flex;flex-direction:column;align-items:flex-start;max-width:85%}
+.msg .who{
+  font-size:var(--text-caption);
+  line-height:1.6;
+  letter-spacing:var(--tracking-caption);
+  text-transform:uppercase;
+  color:var(--color-ash);
+  margin-bottom:var(--spacing-4);
+}
+.msg .when{font-variant-numeric:tabular-nums}
+.msg .bubble{
+  padding:var(--spacing-8) var(--spacing-12);
+  border-radius:var(--radius-wash);
+  background:var(--surface-wash);
+  color:var(--color-ink);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+/* Own messages use the inverted surface — no second accent colour */
+.msg.mine{align-self:flex-end;align-items:flex-end}
+.msg.mine .bubble{background:var(--surface-inverted);color:var(--color-paper)}
+#chatInput{flex:1 1 8em;min-width:0}
+
+.sr-only{
+  position:absolute;
+  width:1px;height:1px;
+  padding:0;margin:-1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  white-space:nowrap;
+  border:0;
+}
+
 .hidden{display:none!important}
 
 /* ---------- Responsive — boundaries aligned to M2's 600dp / 905dp ---------- */
@@ -408,6 +486,17 @@ input::placeholder{color:var(--color-ash);letter-spacing:0}
       </div>
       <div class="divider"></div>
     </div>
+    <fieldset class="seg">
+      <legend class="input-label">電腦難度</legend>
+      <div class="seg-group">
+        <label class="seg-opt"><input type="radio" name="aiLevel" value="easy"><span>簡單</span></label>
+        <label class="seg-opt"><input type="radio" name="aiLevel" value="normal" checked><span>普通</span></label>
+        <label class="seg-opt"><input type="radio" name="aiLevel" value="hard"><span>困難</span></label>
+      </div>
+    </fieldset>
+    <div class="row mt"><button class="secondary" id="aiBtn">與電腦對戰</button></div>
+
+    <div class="divider"></div>
     <div class="row"><button class="secondary" id="localBtn">同機雙人</button></div>
   </div>
 
@@ -422,6 +511,17 @@ input::placeholder{color:var(--color-ash);letter-spacing:0}
     <div class="row">
       <button id="restartBtn" class="hidden">再來一局</button>
       <button class="secondary" id="leaveBtn">離開</button>
+    </div>
+
+    <div id="chat" class="hidden">
+      <div class="divider"></div>
+      <span class="input-label" id="chatLabel">聊天室</span>
+      <div id="chatLog" class="chat-log" role="log" aria-live="polite" aria-labelledby="chatLabel"></div>
+      <div class="row">
+        <label class="sr-only" for="chatInput">訊息內容</label>
+        <input id="chatInput" maxlength="200" placeholder="說點什麼…" autocomplete="off" enterkeyhint="send">
+        <button class="secondary" id="chatSend">送出</button>
+      </div>
     </div>
   </div>
 </div>
@@ -491,7 +591,20 @@ function flips(b, i, c) {
   }
   return all;
 }
-function validMoves(b, c) { const m = []; for (let i = 0; i < 64; i++) if (flips(b, i, c).length) m.push(i); return m; }
+// 合法手一定緊鄰某顆棋子，先用這點篩掉大部分空格再做八方向掃描
+function hasNeighbor(b, i) {
+  const r0 = Math.floor(i / 8), c0 = i % 8;
+  for (const [dr, dc] of DIRS) {
+    const r = r0 + dr, c = c0 + dc;
+    if (r >= 0 && r < 8 && c >= 0 && c < 8 && b[r * 8 + c] !== ".") return true;
+  }
+  return false;
+}
+function validMoves(b, c) {
+  const m = [];
+  for (let i = 0; i < 64; i++) if (b[i] === "." && hasNeighbor(b, i) && flips(b, i, c).length) m.push(i);
+  return m;
+}
 function applyMove(s, i, c) {
   const f = flips(s.board, i, c);
   if (!f.length) return null;
@@ -504,8 +617,95 @@ function applyMove(s, i, c) {
   return { ...s, board: nb, turn, status, lastMove: i, note };
 }
 
+// ---------- 電腦對手 ----------
+// 位置權重：角落最有價值，角落旁邊（會把角讓給對方）給負分
+const AI_W = [
+  120, -20,  20,   5,   5,  20, -20, 120,
+  -20, -40,  -5,  -5,  -5,  -5, -40, -20,
+   20,  -5,  15,   3,   3,  15,  -5,  20,
+    5,  -5,   3,   3,   3,   3,  -5,   5,
+    5,  -5,   3,   3,   3,   3,  -5,   5,
+   20,  -5,  15,   3,   3,  15,  -5,  20,
+  -20, -40,  -5,  -5,  -5,  -5, -40, -20,
+  120, -20,  20,   5,   5,  20, -20, 120
+];
+// 難度：深度決定看多遠；blunder 是「隨便下一手」的機率，讓簡單真的下得出破綻
+const AI_LEVELS = {
+  easy:   { depth: 1, blunder: 0.35, label: "簡單" },
+  normal: { depth: 3, blunder: 0,    label: "普通" },
+  hard:   { depth: 5, blunder: 0,    label: "困難" }
+};
+let aiLevel = "normal";
+const OPP = c => (c === "B" ? "W" : "B");
+
+function boardAfter(b, i, c) {
+  const f = flips(b, i, c);
+  if (!f.length) return null;
+  const a = b.split(""); a[i] = c; f.forEach(k => a[k] = c);
+  return a.join("");
+}
+
+function evaluate(b, c) {
+  let empties = 0, pos = 0, mine = 0, theirs = 0;
+  for (let i = 0; i < 64; i++) {
+    if (b[i] === ".") { empties++; continue; }
+    if (b[i] === c) { pos += AI_W[i]; mine++; } else { pos -= AI_W[i]; theirs++; }
+  }
+  // 終盤改成純數子，位置權重這時已經沒有意義
+  if (empties <= 10) return (mine - theirs) * 100;
+  return pos + (validMoves(b, c).length - validMoves(b, OPP(c)).length) * 10;
+}
+
+// 先搜角落等高價值點，alpha-beta 才剪得掉大半的樹
+const byWeight = moves => moves.sort((x, y) => AI_W[y] - AI_W[x]);
+
+function negamax(b, c, depth, alpha, beta) {
+  if (depth === 0) return evaluate(b, c);
+  const moves = byWeight(validMoves(b, c));
+  if (!moves.length) {
+    // 無處可下：對手也沒得下就是終局，否則 pass
+    if (!validMoves(b, OPP(c)).length) return evaluate(b, c);
+    return -negamax(b, OPP(c), depth - 1, -beta, -alpha);
+  }
+  let best = -Infinity;
+  for (const m of moves) {
+    const v = -negamax(boardAfter(b, m, c), OPP(c), depth - 1, -beta, -alpha);
+    if (v > best) best = v;
+    if (best > alpha) alpha = best;
+    if (alpha >= beta) break;
+  }
+  return best;
+}
+
+function chooseAiMove(b, c) {
+  const moves = byWeight(validMoves(b, c));
+  if (!moves.length) return null;
+  const lv = AI_LEVELS[aiLevel] || AI_LEVELS.normal;
+  if (lv.blunder && Math.random() < lv.blunder) return moves[Math.floor(Math.random() * moves.length)];
+  let best = moves[0], bestV = -Infinity;
+  for (const m of moves) {
+    const v = -negamax(boardAfter(b, m, c), OPP(c), lv.depth - 1, -Infinity, Infinity);
+    if (v > bestV) { bestV = v; best = m; }
+  }
+  return best;
+}
+
+// 電腦該下就下。稍微延遲，讓玩家先看見自己那一步落下
+function maybeAiMove() {
+  if (mode !== "ai" || !state || state.status !== "playing" || state.turn === myColor) return;
+  setTimeout(() => {
+    if (mode !== "ai" || !state || state.status !== "playing" || state.turn === myColor) return;
+    const mv = chooseAiMove(state.board, aiColor);
+    if (mv == null) return;
+    const ns = applyMove(state, mv, aiColor);
+    if (ns) { state = ns; render(); maybeAiMove(); }
+  }, 350);
+}
+
 // ---------- 狀態 ----------
 let mode = null, state = null, myColor = null, roomRef = null, roomCode = null;
+// 電腦對戰：玩家執黑先手，電腦執白
+const aiColor = "W";
 function getCid() {
   try {
     let v = localStorage.getItem("othello_cid");
@@ -585,34 +785,107 @@ function render() {
   if (state.status === "waiting") txt = "等待朋友加入…按「分享連結」傳給對方";
   else if (state.status === "playing") {
     if (mode === "local") txt = `輪到${N[state.turn]}棋`;
+    else if (mode === "ai") txt = state.turn === myColor ? "輪到你了！" : "電腦思考中…";
     else if (!myColor) txt = `觀戰中・輪到${N[state.turn]}棋`;
     else txt = state.turn === myColor ? "輪到你了！" : "等待對手下子…";
     if (state.note) txt = state.note + "・" + txt;
   } else if (state.status === "over") {
     const win = nB > nW ? "B" : nW > nB ? "W" : null;
     if (!win) txt = "平手！";
-    else if (mode === "online" && myColor) txt = win === myColor ? "你贏了 🎉" : "你輸了，再接再厲";
+    else if ((mode === "online" || mode === "ai") && myColor) txt = win === myColor ? "你贏了 🎉" : "你輸了，再接再厲";
     else txt = N[win] + "棋獲勝！";
     txt += `（${nB} : ${nW}）`;
   }
   $("status").textContent = txt;
   $("restartBtn").classList.toggle("hidden", !(state.status === "over" && (mode === "local" || myColor)));
   $("roomInfo").textContent = mode === "local" ? "同機雙人"
+    : mode === "ai" ? `與電腦對戰・${AI_LEVELS[aiLevel].label}・你是${N[myColor]}棋`
     : `房間 ${roomCode}・${myColor ? "你是" + N[myColor] + "棋" : "觀戰"}`;
 }
 
 function showGame() {
   $("lobby").classList.add("hidden"); $("game").classList.remove("hidden");
   $("shareBtn").classList.toggle("hidden", mode !== "online");
+  $("chat").classList.toggle("hidden", mode !== "online");
+}
+
+// ---------- 聊天 ----------
+let chatRef = null;
+const seenMsgs = new Set();
+const WHO = { B: "黑棋", W: "白棋", S: "觀戰" };
+
+function resetChat() {
+  seenMsgs.clear();
+  const log = $("chatLog");
+  log.innerHTML = "";
+  const hint = document.createElement("span");
+  hint.className = "chat-empty";
+  hint.textContent = "還沒有訊息";
+  log.appendChild(hint);
+}
+
+// serverTimestamp() 送出當下會先給本機估算值，之後才換成伺服器值；
+// 兩者差距是毫秒等級，所以直接用，不另外監聽修正
+function fmtTime(ts) {
+  if (typeof ts !== "number" || !isFinite(ts)) return null;
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return null;
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const now = new Date();
+  const sameDay = d.getFullYear() === now.getFullYear()
+    && d.getMonth() === now.getMonth()
+    && d.getDate() === now.getDate();
+  return { text: sameDay ? `${hh}:${mm}` : `${d.getMonth() + 1}/${d.getDate()} ${hh}:${mm}`, iso: d.toISOString(), full: d.toLocaleString() };
+}
+
+function addMsg(key, m) {
+  if (!m || !m.t || seenMsgs.has(key)) return;
+  seenMsgs.add(key);
+  const log = $("chatLog");
+  const hint = log.querySelector(".chat-empty");
+  if (hint) hint.remove();
+
+  const mine = m.c === cid;
+  const el = document.createElement("div");
+  el.className = "msg" + (mine ? " mine" : "");
+  const who = document.createElement("span");
+  who.className = "who";
+  who.textContent = mine ? "你" : (WHO[m.k] || WHO.S);
+  const when = fmtTime(m.ts);
+  if (when) {
+    const time = document.createElement("time");
+    time.className = "when";
+    time.dateTime = when.iso;
+    time.title = when.full;
+    time.textContent = when.text;
+    who.append(" · ", time);
+  }
+  const bubble = document.createElement("span");
+  bubble.className = "bubble";
+  // textContent，不是 innerHTML：訊息來自對方，一律當純文字處理
+  bubble.textContent = String(m.t).slice(0, 200);
+  el.appendChild(who);
+  el.appendChild(bubble);
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function sendChat() {
+  const inp = $("chatInput");
+  const text = inp.value.trim().slice(0, 200);
+  if (!text || !chatRef) return;
+  inp.value = "";
+  fb.push(chatRef, { c: cid, k: myColor || "S", t: text, ts: fb.serverTimestamp() }).catch(fail);
 }
 
 // ---------- 動作 ----------
 function play(i) {
   // 每一格都掛了監聽，所以這裡擋掉不能下的格子
   if (!cells[i] || !cells[i].classList.contains("can")) return;
-  if (mode === "local") {
+  if (mode === "local" || mode === "ai") {
     const ns = applyMove(state, i, state.turn);
-    if (ns) { state = ns; render(); }
+    if (ns) { state = ns; render(); if (mode === "ai") maybeAiMove(); }
     return;
   }
   fb.runTransaction(roomRef, cur => {
@@ -623,12 +896,18 @@ function play(i) {
 }
 
 function restart() {
-  if (mode === "local") { state = { board: initBoard(), turn: "B", status: "playing", lastMove: -1, note: "" }; render(); return; }
+  if (mode === "local" || mode === "ai") {
+    state = { board: initBoard(), turn: "B", status: "playing", lastMove: -1, note: "" };
+    render();
+    maybeAiMove();
+    return;
+  }
   fb.runTransaction(roomRef, cur => {
     if (!cur || cur.status !== "over") return;
     const p = cur.players || {};
     // 交換顏色，讓雙方輪流先手
-    return { board: initBoard(), turn: "B", status: "playing", players: { B: p.W || null, W: p.B || null }, lastMove: -1, note: "" };
+    // 保留聊天記錄：這裡回傳的是整個房間節點，漏掉 chat 就等於把對話刪掉
+    return { board: initBoard(), turn: "B", status: "playing", players: { B: p.W || null, W: p.B || null }, lastMove: -1, note: "", chat: cur.chat || null };
   }).catch(fail);
 }
 
@@ -666,14 +945,21 @@ async function enterRoom(code) {
   } catch (e) { fail(e); return; }
   history.replaceState(null, "", "?room=" + code);
   showGame();
+  resetChat();
   fb.onValue(roomRef, snap => {
     const v = snap.val();
     if (!v) { $("status").textContent = "找不到這個房間"; $("board").innerHTML = ""; return; }
-    state = v;
-    const p = v.players || {};
+    // 聊天記錄不進 state：棋局的 transaction 會把 state 整個寫回去，
+    // 訊息混在裡面會被反覆重寫，也可能蓋掉同時送出的訊息
+    const { chat, ...game } = v;
+    state = game;
+    const p = game.players || {};
     myColor = p.B === cid ? "B" : p.W === cid ? "W" : null;
     render();
   }, fail);
+
+  chatRef = fb.ref(db, "rooms/" + code + "/chat");
+  fb.onChildAdded(chatRef, snap => addMsg(snap.key, snap.val()), fail);
 }
 
 async function share() {
@@ -685,7 +971,23 @@ async function share() {
 }
 
 // ---------- 綁定 ----------
-$("localBtn").onclick = () => { mode = "local"; showGame(); restart(); };
+$("localBtn").onclick = () => { mode = "local"; myColor = null; showGame(); restart(); };
+$("aiBtn").onclick = () => {
+  const picked = document.querySelector('input[name="aiLevel"]:checked');
+  aiLevel = picked ? picked.value : "normal";
+  try { localStorage.setItem("othello_ai_level", aiLevel); } catch (e) { /* 無痕模式等情況，忽略 */ }
+  mode = "ai"; myColor = "B"; showGame(); restart();
+};
+
+// 記住上次選的難度
+try {
+  const saved = localStorage.getItem("othello_ai_level");
+  if (saved && AI_LEVELS[saved]) {
+    aiLevel = saved;
+    const el = document.querySelector(`input[name="aiLevel"][value="${saved}"]`);
+    if (el) el.checked = true;
+  }
+} catch (e) { /* 忽略 */ }
 $("createBtn").onclick = createRoom;
 $("joinBtn").onclick = () => enterRoom($("codeInput").value);
 // Enter 直接加入，不必特地去點按鈕
@@ -694,6 +996,10 @@ $("codeInput").addEventListener("keydown", e => {
 });
 $("restartBtn").onclick = restart;
 $("shareBtn").onclick = share;
+$("chatSend").onclick = sendChat;
+$("chatInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); sendChat(); }
+});
 $("leaveBtn").onclick = () => {
   // 線上對戰中離開等於棄賽，而且沒得復原 —— 只有這種情況才攔一下
   const inPlay = mode === "online" && myColor && state && state.status === "playing";
