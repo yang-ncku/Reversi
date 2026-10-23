@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>線上黑白棋</title>
+<style>
+:root{--bg:#f4f1ea;--fg:#222;--muted:#777;--board:#2e7d4f;--line:#1f5a38;--hint:rgba(255,255,255,.35);--accent:#e74c3c;--card:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1b1b;--fg:#eee;--muted:#999;--card:#2a2a2a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC",sans-serif;display:flex;justify-content:center}
+.wrap{width:100%;max-width:480px;padding:16px}
+h1{font-size:1.4rem;margin:.2em 0 .6em;text-align:center}
+.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+button{font:inherit;padding:10px 14px;border-radius:8px;border:0;background:#333;color:#fff;cursor:pointer}
+button.secondary{background:transparent;color:var(--fg);border:1px solid var(--muted)}
+input{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--muted);width:8em;text-transform:uppercase;background:transparent;color:var(--fg)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.mt{margin-top:10px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:var(--line);padding:2px;border-radius:8px;aspect-ratio:1;width:100%}
+.cell{background:var(--board);display:flex;align-items:center;justify-content:center}
+.cell.can{cursor:pointer}
+.cell.can::after{content:"";width:28%;height:28%;border-radius:50%;background:var(--hint)}
+.disc{width:82%;height:82%;border-radius:50%;transition:background .25s}
+.disc.B{background:#111}
+.disc.W{background:#f5f5f5;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.cell.last .disc{outline:3px solid var(--accent);outline-offset:-3px}
+.score{display:flex;justify-content:space-between;font-weight:600;margin:10px 0}
+.status{text-align:center;min-height:1.5em;margin:10px 0}
+.small{font-size:.85rem;color:var(--muted)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>⚫ 線上黑白棋 ⚪</h1>
+
+  <div id="lobby" class="card">
+    <div id="setupWarn" class="small hidden">尚未設定 Firebase，目前只能「同機雙人」對戰。</div>
+    <div id="onlineBox">
+      <div class="row"><button id="createBtn">建立房間</button></div>
+      <div class="row mt"><input id="codeInput" maxlength="5" placeholder="房間代碼"><button class="secondary" id="joinBtn">加入房間</button></div>
+    </div>
+    <div class="row mt"><button class="secondary" id="localBtn">同機雙人</button></div>
+  </div>
+
+  <div id="game" class="card hidden">
+    <div class="row" style="justify-content:space-between">
+      <div id="roomInfo"></div>
+      <button class="secondary" id="shareBtn">分享連結</button>
+    </div>
+    <div class="score"><span id="sB"></span><span id="sW"></span></div>
+    <div id="board" class="board"></div>
+    <div id="status" class="status"></div>
+    <div class="row" style="justify-content:center">
+      <button id="restartBtn" class="hidden">再來一局</button>
+      <button class="secondary" id="leaveBtn">離開</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ====== 1. 把 Firebase 主控台給你的設定貼在這裡 ======
+const firebaseConfig = {
+  apiKey: "AIzaSyBufcZSBnuBlJqnc3a0ksB5aDZk78HkjGw",
+  authDomain: "reversi---online.firebaseapp.com",
+  projectId: "reversi---online",
+  storageBucket: "reversi---online.firebasestorage.app",
+  messagingSenderId: "712601728649",
+  appId: "1:712601728649:web:bd63dc0b3ddcd823443858",
+  measurementId: "G-Q2CFTMN551"
+};
+// ======================================================
+
+const ONLINE = firebaseConfig.apiKey && firebaseConfig.apiKey !== "PASTE_HERE";
+let fb = null, db = null;
+if (ONLINE) {
+  try {
+    const app = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+    fb = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+    db = fb.getDatabase(app.initializeApp(firebaseConfig));
+  } catch (e) { console.error(e); alert("Firebase 載入失敗，請檢查設定"); }
+}
+
+const $ = id => document.getElementById(id);
+const N = { B: "黑", W: "白" };
+const DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+// ---------- 遊戲規則 ----------
+function initBoard() {
+  const b = Array(64).fill(".");
+  b[27] = "W"; b[28] = "B"; b[35] = "B"; b[36] = "W";
+  return b.join("");
+}
+function flips(b, i, c) {
+  if (b[i] !== ".") return [];
+  const o = c === "B" ? "W" : "B", r0 = Math.floor(i / 8), c0 = i % 8;
+  let all = [];
+  for (const [dr, dc] of DIRS) {
+    let r = r0 + dr, cc = c0 + dc; const line = [];
+    while (r >= 0 && r < 8 && cc >= 0 && cc < 8 && b[r * 8 + cc] === o) { line.push(r * 8 + cc); r += dr; cc += dc; }
+    if (line.length && r >= 0 && r < 8 && cc >= 0 && cc < 8 && b[r * 8 + cc] === c) all = all.concat(line);
+  }
+  return all;
+}
+function validMoves(b, c) { const m = []; for (let i = 0; i < 64; i++) if (flips(b, i, c).length) m.push(i); return m; }
+function applyMove(s, i, c) {
+  const f = flips(s.board, i, c);
+  if (!f.length) return null;
+  const b = s.board.split(""); b[i] = c; f.forEach(k => b[k] = c);
+  const nb = b.join(""), o = c === "B" ? "W" : "B";
+  let turn = null, status = "playing", note = "";
+  if (validMoves(nb, o).length) turn = o;
+  else if (validMoves(nb, c).length) { turn = c; note = N[o] + "棋無處可下，自動 pass"; }
+  else status = "over";
+  return { ...s, board: nb, turn, status, lastMove: i, note };
+}
+
+// ---------- 狀態 ----------
+let mode = null, state = null, myColor = null, roomRef = null, roomCode = null;
+function getCid() {
+  try {
+    let v = localStorage.getItem("othello_cid");
+    if (!v) { v = Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem("othello_cid", v); }
+    return v;
+  } catch (e) { return Math.random().toString(36).slice(2); }
+}
+const cid = getCid();
+
+// ---------- 畫面 ----------
+function render() {
+  if (!state) return;
+  const b = state.board;
+  const myTurn = state.status === "playing" && (mode === "local" || state.turn === myColor);
+  const moves = myTurn ? validMoves(b, state.turn) : [];
+  const boardEl = $("board"); boardEl.innerHTML = "";
+  for (let i = 0; i < 64; i++) {
+    const cell = document.createElement("div"); cell.className = "cell";
+    if (b[i] !== ".") { const d = document.createElement("div"); d.className = "disc " + b[i]; cell.appendChild(d); }
+    if (i === state.lastMove) cell.classList.add("last");
+    if (moves.includes(i)) { cell.classList.add("can"); cell.onclick = () => play(i); }
+    boardEl.appendChild(cell);
+  }
+  const nB = [...b].filter(x => x === "B").length, nW = [...b].filter(x => x === "W").length;
+  $("sB").textContent = `⚫ 黑 ${nB}`; $("sW").textContent = `白 ${nW} ⚪`;
+
+  let txt = "";
+  if (state.status === "waiting") txt = "等待朋友加入…按「分享連結」傳給對方";
+  else if (state.status === "playing") {
+    if (mode === "local") txt = `輪到${N[state.turn]}棋`;
+    else if (!myColor) txt = `觀戰中・輪到${N[state.turn]}棋`;
+    else txt = state.turn === myColor ? "輪到你了！" : "等待對手下子…";
+    if (state.note) txt = state.note + "・" + txt;
+  } else if (state.status === "over") {
+    const win = nB > nW ? "B" : nW > nB ? "W" : null;
+    if (!win) txt = "平手！";
+    else if (mode === "online" && myColor) txt = win === myColor ? "你贏了 🎉" : "你輸了，再接再厲";
+    else txt = N[win] + "棋獲勝！";
+    txt += `（${nB} : ${nW}）`;
+  }
+  $("status").textContent = txt;
+  $("restartBtn").classList.toggle("hidden", !(state.status === "over" && (mode === "local" || myColor)));
+  $("roomInfo").textContent = mode === "local" ? "同機雙人"
+    : `房間 ${roomCode}・${myColor ? "你是" + N[myColor] + "棋" : "觀戰"}`;
+}
+
+function showGame() {
+  $("lobby").classList.add("hidden"); $("game").classList.remove("hidden");
+  $("shareBtn").classList.toggle("hidden", mode !== "online");
+}
+
+// ---------- 動作 ----------
+function play(i) {
+  if (mode === "local") {
+    const ns = applyMove(state, i, state.turn);
+    if (ns) { state = ns; render(); }
+    return;
+  }
+  fb.runTransaction(roomRef, cur => {
+    if (!cur) return cur;
+    if (cur.status !== "playing" || cur.turn !== myColor) return;
+    return applyMove(cur, i, myColor) || undefined;
+  });
+}
+
+function restart() {
+  if (mode === "local") { state = { board: initBoard(), turn: "B", status: "playing", lastMove: -1, note: "" }; render(); return; }
+  fb.runTransaction(roomRef, cur => {
+    if (!cur || cur.status !== "over") return;
+    const p = cur.players || {};
+    // 交換顏色，讓雙方輪流先手
+    return { board: initBoard(), turn: "B", status: "playing", players: { B: p.W || null, W: p.B || null }, lastMove: -1, note: "" };
+  });
+}
+
+function genCode() {
+  const s = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let c = "";
+  for (let i = 0; i < 5; i++) c += s[Math.floor(Math.random() * s.length)];
+  return c;
+}
+
+async function createRoom() {
+  const code = genCode();
+  await fb.set(fb.ref(db, "rooms/" + code),
+    { board: initBoard(), turn: "B", status: "waiting", players: { B: cid }, lastMove: -1, note: "" });
+  enterRoom(code);
+}
+
+async function enterRoom(code) {
+  code = code.trim().toUpperCase();
+  if (!code) return;
+  roomCode = code; mode = "online";
+  roomRef = fb.ref(db, "rooms/" + code);
+  await fb.runTransaction(roomRef, cur => {
+    if (!cur) return cur;
+    cur.players = cur.players || {};
+    if (cur.players.B === cid || cur.players.W === cid) return cur;
+    if (!cur.players.W) { cur.players.W = cid; if (cur.status === "waiting") cur.status = "playing"; return cur; }
+    return; // 已滿，觀戰
+  });
+  history.replaceState(null, "", "?room=" + code);
+  showGame();
+  fb.onValue(roomRef, snap => {
+    const v = snap.val();
+    if (!v) { $("status").textContent = "找不到這個房間"; $("board").innerHTML = ""; return; }
+    state = v;
+    const p = v.players || {};
+    myColor = p.B === cid ? "B" : p.W === cid ? "W" : null;
+    render();
+  });
+}
+
+async function share() {
+  const url = location.origin + location.pathname + "?room=" + roomCode;
+  try {
+    if (navigator.share) { await navigator.share({ title: "來下黑白棋！", url }); return; }
+    await navigator.clipboard.writeText(url); alert("已複製連結！");
+  } catch (e) { prompt("複製這個連結給朋友：", url); }
+}
+
+// ---------- 綁定 ----------
+$("localBtn").onclick = () => { mode = "local"; showGame(); restart(); };
+$("createBtn").onclick = createRoom;
+$("joinBtn").onclick = () => enterRoom($("codeInput").value);
+$("restartBtn").onclick = restart;
+$("shareBtn").onclick = share;
+$("leaveBtn").onclick = () => { location.href = location.pathname; };
+
+if (!db) { $("setupWarn").classList.remove("hidden"); $("onlineBox").classList.add("hidden"); }
+else {
+  const r = new URLSearchParams(location.search).get("room");
+  if (r) enterRoom(r);
+}
+</script>
+</body>
+</html>
