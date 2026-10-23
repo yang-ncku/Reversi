@@ -6,45 +6,41 @@
 <title>線上黑白棋</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&family=Noto+Sans+TC:wght@400&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Backgrounds */
-  --background-primary:#313338;
-  --background-secondary:#2b2d31;
-  --background-secondary-alt:#232428;
-  --background-tertiary:#1e1f22;
-  --background-floating:#111214;
-  --background-modifier-hover:rgba(79,84,92,.16);
-  --background-modifier-active:rgba(79,84,92,.24);
-  --background-modifier-selected:rgba(79,84,92,.32);
-  --background-input:#383a40;
+  /* Colors */
+  --color-highlighter-yellow:#e4f222;
+  --color-ink:#0c0a08;
+  --color-obsidian:#1a1919;
+  --color-paper:#ffffff;
+  --color-bone:#f4f2f0;
+  --color-ash:#6d6c6b;
+  --color-hairline:#e5e7eb;
+  --color-smoke:#d3d3d3;
 
-  /* Brand */
-  --brand-500:#5865F2;
-  --brand-560:#4752C4;
-  --brand-600:#3C45A5;
-  --brand-260:#A5B3F0;
+  /* Typography — lausanne substitute: Inter */
+  --font-lausanne:'Inter','Noto Sans TC',ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --font-weight-regular:400;
 
-  /* Text */
-  --text-normal:#dbdee1;
-  --text-muted:#949ba4;
-  --text-link:#00a8fc;
-  --header-primary:#f2f3f5;
-  --header-secondary:#b5bac1;
+  /* rem, so the type scale follows the reader's own font-size setting.
+     1rem = 16px at the browser default; the px values from DESIGN.md are noted. */
+  --text-caption:0.625rem;   /* 10px */
+  --leading-caption:2.2;
+  --tracking-caption:0.018em;
+  --text-body:1rem;          /* 16px */
+  --leading-body:1.5;
+  --text-subheading:1.25rem; /* 20px */
+  --leading-subheading:1.3;
+  --text-heading-sm:1.5rem;  /* 24px */
+  --leading-heading-sm:1.17;
+  --text-heading:1.75rem;    /* 28px */
+  --leading-heading:1.14;
+  --text-heading-lg:2.5rem;  /* 40px */
+  --leading-heading-lg:1.05;
 
-  /* Semantic / status */
-  --green-360:#23a55a;
-  --yellow-300:#f0b232;
-  --red-400:#f23f43;
-  --red-430:#da373c;
-  --button-secondary:#4e5058;
-  --button-secondary-hover:#6d6f78;
-  --divider:#3f4147;
-
-  /* Typography */
-  --font-primary:"gg sans","Noto Sans TC","Noto Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
-  --font-display:"Poppins","gg sans","Noto Sans TC",sans-serif;
+  /* Control heights grow with the text so larger settings never clip a label */
+  --control-height:2.75rem;  /* 44px */
 
   /* Spacing */
   --spacing-4:4px;
@@ -53,17 +49,26 @@
   --spacing-16:16px;
   --spacing-20:20px;
   --spacing-24:24px;
+  --spacing-32:32px;
+  --spacing-40:40px;
+  --spacing-48:48px;
 
   /* Radii */
-  --radius-sm:3px;
-  --radius-md:4px;
-  --radius-lg:8px;
-  --radius-round:50%;
+  --radius-tags:6px;
+  --radius-buttons:6px;
+  --radius-inputs:10px;
+  --radius-wash:12px;
+  --radius-cards:16px;
 
-  /* Elevation */
-  --elevation-low:0 1px 0 rgba(0,0,0,.2);
-  --elevation-medium:0 4px 8px rgba(0,0,0,.2);
-  --elevation-high:0 8px 16px rgba(0,0,0,.24);
+  /* Surfaces */
+  --surface-canvas:#f4f2f0;
+  --surface-card:#ffffff;
+  --surface-wash:#f4f2f0;
+  --surface-inverted:#1a1919;
+  --surface-action:#e4f222;
+
+  /* Motion — utility-focused, 0.3-0.4s ease-out */
+  --motion:0.3s ease-out;
 }
 
 *{box-sizing:border-box}
@@ -71,35 +76,38 @@
 body{
   margin:0;
   min-height:100vh;
-  background:var(--background-tertiary);
-  color:var(--text-normal);
-  font-family:var(--font-primary);
-  font-size:16px;
-  line-height:22px;
+  background:var(--surface-canvas);
+  color:var(--color-ink);
+  font-family:var(--font-lausanne);
+  font-weight:var(--font-weight-regular);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
+  font-feature-settings:"ss01" on;
   display:flex;
   justify-content:center;
   -webkit-font-smoothing:antialiased;
 }
 
-.wrap{width:100%;max-width:480px;padding:var(--spacing-24) var(--spacing-16) var(--spacing-20)}
+/* Left-aligned content inside a centered max-width container */
+.wrap{width:100%;max-width:35rem;padding:var(--spacing-48) var(--spacing-24) var(--spacing-40)}
 
 h1{
-  font-family:var(--font-display);
-  font-size:28px;
-  line-height:34px;
-  font-weight:700;
-  color:var(--header-primary);
-  margin:0 0 var(--spacing-20);
-  text-align:center;
+  font-size:var(--text-heading-lg);
+  line-height:var(--leading-heading-lg);
+  font-weight:var(--font-weight-regular);
+  letter-spacing:0;
+  color:var(--color-ink);
+  margin:0 0 var(--spacing-24);
+  text-align:left;
 }
 
-/* ---------- Surfaces ---------- */
+/* ---------- Content card: border is the elevation primitive ---------- */
 .card{
-  background:var(--background-primary);
-  border-radius:var(--radius-lg);
-  padding:var(--spacing-16);
-  margin-bottom:var(--spacing-12);
-  box-shadow:var(--elevation-medium);
+  background:var(--surface-card);
+  border:1px solid var(--color-hairline);
+  border-radius:var(--radius-cards);
+  padding:var(--spacing-24);
+  margin-bottom:var(--spacing-16);
 }
 
 .panel-header{
@@ -107,197 +115,287 @@ h1{
   align-items:center;
   justify-content:space-between;
   gap:var(--spacing-8);
-  padding-bottom:var(--spacing-12);
-  margin-bottom:var(--spacing-16);
-  border-bottom:1px solid var(--divider);
+  padding-bottom:var(--spacing-16);
+  margin-bottom:var(--spacing-20);
+  border-bottom:1px solid var(--color-hairline);
 }
 
 #roomInfo{
-  font-size:16px;
-  font-weight:600;
-  line-height:20px;
-  color:var(--header-primary);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
+  color:var(--color-ink);
   display:flex;
   align-items:center;
   gap:var(--spacing-8);
   min-width:0;
 }
+/* Active-state mark — the only chromatic signal */
 #roomInfo::before{
   content:"";
   flex:0 0 auto;
-  width:10px;
-  height:10px;
-  border-radius:var(--radius-round);
-  background:var(--green-360);
-  box-shadow:0 0 0 3px var(--background-primary);
+  width:8px;
+  height:8px;
+  background:var(--surface-action);
 }
 
 /* ---------- Buttons ---------- */
 button{
   font-family:inherit;
-  font-size:14px;
-  font-weight:500;
-  line-height:16px;
-  padding:2px var(--spacing-16);
-  min-width:60px;
-  min-height:38px;
+  font-weight:var(--font-weight-regular);
+  font-size:var(--text-body);
+  line-height:1;
+  font-feature-settings:"ss01" on;
+  height:var(--control-height);
+  padding:0 var(--spacing-20);
   border:none;
-  border-radius:var(--radius-sm);
-  background:var(--brand-500);
-  color:#fff;
+  border-radius:var(--radius-buttons);
+  background:var(--surface-action);
+  color:var(--color-ink);
   cursor:pointer;
-  transition:background-color 170ms ease;
+  transition:background-color var(--motion),border-color var(--motion),color var(--motion);
 }
-button:hover{background:var(--brand-560)}
-button:active{background:var(--brand-600)}
-button:focus-visible{outline:2px solid var(--brand-260);outline-offset:2px}
-button:disabled{opacity:.5;cursor:not-allowed}
+button:hover{background:#d8e61f}
+button:active{background:#c6d41a}
+button:focus-visible{outline:2px solid var(--color-ink);outline-offset:2px}
+button:disabled{color:var(--color-ash);cursor:not-allowed}
 
-button.secondary{background:var(--button-secondary)}
-button.secondary:hover{background:var(--button-secondary-hover)}
-button.secondary:active{background:var(--button-secondary)}
+/* Outlined — secondary action beside the primary */
+button.secondary{
+  background:transparent;
+  border:1px solid var(--color-ink);
+  color:var(--color-ink);
+  padding:0 var(--spacing-12);
+}
+button.secondary:hover{background:var(--surface-wash)}
+button.secondary:active{background:var(--color-hairline)}
 
-button.danger{background:transparent;color:var(--text-muted)}
-button.danger:hover{background:var(--red-400);color:#fff}
-button.danger:active{background:var(--red-430)}
+/* Ghost / link — tertiary */
+button.ghost{
+  background:transparent;
+  border:none;
+  color:var(--color-ash);
+  padding:0 var(--spacing-12);
+}
+button.ghost:hover{background:var(--surface-wash);color:var(--color-ink)}
 
 /* ---------- Form ---------- */
 .input-label{
   display:block;
-  color:var(--header-secondary);
-  font-size:12px;
-  font-weight:700;
-  line-height:16px;
-  letter-spacing:.02em;
+  color:var(--color-ash);
+  font-size:var(--text-caption);
+  line-height:var(--leading-caption);
+  letter-spacing:var(--tracking-caption);
   text-transform:uppercase;
-  margin-bottom:var(--spacing-8);
+  margin-bottom:var(--spacing-4);
 }
 
 input{
   font-family:inherit;
-  font-size:16px;
-  line-height:20px;
-  height:40px;
-  padding:10px;
-  width:8em;
-  border:none;
-  border-radius:var(--radius-sm);
-  background:var(--background-tertiary);
-  color:var(--text-normal);
+  font-weight:var(--font-weight-regular);
+  font-size:var(--text-body);
+  line-height:1;
+  font-feature-settings:"ss01" on;
+  height:var(--control-height);
+  width:9em;
+  padding:0 var(--spacing-16) 0 var(--spacing-24);
+  background:transparent;
+  border:1px solid rgba(33,33,33,.1);
+  border-radius:var(--radius-inputs);
+  color:var(--color-ink);
   text-transform:uppercase;
-  letter-spacing:.08em;
+  letter-spacing:0.05em;
+  transition:border-color var(--motion);
 }
-input:focus{outline:none}
-input::placeholder{color:#87898c;letter-spacing:0}
+input:focus{outline:none;border-color:var(--color-ink)}
+input::placeholder{color:var(--color-ash);letter-spacing:0}
 
 .row{display:flex;gap:var(--spacing-8);flex-wrap:wrap;align-items:center}
-.row.center{justify-content:center}
-.mt{margin-top:var(--spacing-12)}
+.mt{margin-top:var(--spacing-16)}
 
-.divider{
-  height:1px;
-  background:var(--divider);
-  margin:var(--spacing-16) 0;
-}
+.divider{height:1px;background:var(--color-hairline);margin:var(--spacing-20) 0}
 
-/* ---------- Board ---------- */
+/* ---------- Board: hairline grid cells, no shadow ---------- */
 .board{
   display:grid;
   grid-template-columns:repeat(8,1fr);
-  gap:3px;
-  background:var(--background-tertiary);
-  padding:var(--spacing-8);
-  border-radius:var(--radius-lg);
+  gap:1px;
+  background:var(--color-hairline);
+  border:1px solid var(--color-hairline);
+  border-radius:var(--radius-wash);
+  overflow:hidden;
   aspect-ratio:1;
-  width:100%;
-  box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
+  /* Grow with the column, but never taller than the window minus the chrome,
+     so the whole panel stays in view without scrolling */
+  width:min(100%, max(20rem, calc(100vh - 28rem)));
+  /* When the height budget caps the board below the column width, keep it
+     centred in the card rather than stranded against the left edge */
+  margin-inline:auto;
 }
 
 .cell{
-  background:var(--background-input);
-  border-radius:var(--radius-md);
+  background:var(--surface-card);
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:background-color 150ms ease;
+  position:relative;
+  transition:background-color var(--motion);
 }
+.cell:focus{outline:none}
+.cell:focus-visible{outline:2px solid var(--color-ink);outline-offset:-2px;z-index:1}
 .cell.can{cursor:pointer}
+/* Hint dot carries an Ink ring: yellow on white is only 1.23:1 on luminance,
+   so hue alone must not be the signal */
+/* Absolutely positioned, not a flex item: the .disc is always in the cell
+   (so flips can animate), and a second flex item would shove the dot aside */
 .cell.can::after{
   content:"";
+  position:absolute;
+  left:50%;
+  top:50%;
   width:26%;
   height:26%;
-  border-radius:var(--radius-round);
-  background:var(--brand-500);
-  opacity:.65;
-  transition:transform 150ms ease,opacity 150ms ease;
+  transform:translate(-50%,-50%);
+  border-radius:50%;
+  background:var(--surface-action);
+  animation:hint-breathe 2.4s ease-in-out infinite;
+  transition:background-color var(--motion),transform var(--motion);
 }
-.cell.can:hover{background:#41434a}
-.cell.can:hover::after{transform:scale(1.25);opacity:1}
+/* A slow, shallow pulse: enough to read as "you can play here" without
+   pulling the eye away from the board */
+@keyframes hint-breathe{
+  0%,100%{transform:translate(-50%,-50%) scale(1)}
+  50%{transform:translate(-50%,-50%) scale(1.12)}
+}
+.cell.can:hover{background:var(--surface-wash)}
+/* Feedback on press, not on release */
+.cell.can:active{background:var(--surface-action)}
+.cell.can:active::after{animation:none;transform:translate(-50%,-50%) scale(1.4)}
+/* Last move — active-state highlight */
+.cell.last{background:var(--surface-action)}
 
 .disc{
-  width:82%;
-  height:82%;
-  border-radius:var(--radius-round);
-  transition:background-color 170ms ease;
+  width:78%;
+  height:78%;
+  border-radius:50%;
+  border:1px solid transparent;
+  transition:background-color var(--motion),border-color var(--motion);
 }
-.disc.B{background:var(--background-floating);box-shadow:inset 0 2px 0 rgba(255,255,255,.08)}
-.disc.W{background:var(--header-primary);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
-.cell.last .disc{outline:3px solid var(--yellow-300);outline-offset:-3px}
+.disc.B{background:var(--color-ink);border-color:var(--color-ink)}
+.disc.W{background:var(--color-paper);border-color:var(--color-ink)}
 
-/* ---------- Score pills ---------- */
+/* ---------- Score: Live Counter band ---------- */
 .score{
   display:flex;
   justify-content:space-between;
+  align-items:center;
   gap:var(--spacing-8);
-  margin-bottom:var(--spacing-12);
+  background:var(--surface-inverted);
+  border-radius:var(--radius-wash);
+  padding:var(--spacing-12) var(--spacing-16);
+  margin-bottom:var(--spacing-16);
 }
 .score span{
-  background:var(--background-secondary);
-  border:1px solid transparent;
-  border-radius:var(--radius-lg);
-  padding:var(--spacing-4) 10px;
-  font-size:14px;
-  font-weight:500;
-  line-height:20px;
-  color:var(--text-normal);
+  color:var(--color-paper);
+  font-size:0.875rem;
+  line-height:1.2;
+  letter-spacing:0.018em;
 }
 
 /* ---------- Status ---------- */
 .status{
-  text-align:center;
-  min-height:22px;
-  margin:var(--spacing-12) 0 var(--spacing-16);
-  font-size:14px;
-  font-weight:500;
-  line-height:22px;
-  color:var(--header-secondary);
+  text-align:left;
+  min-height:1.5rem;
+  margin:var(--spacing-16) 0 var(--spacing-20);
+  font-size:var(--text-body);
+  line-height:var(--leading-body);
+  color:var(--color-ash);
 }
 
-.small{font-size:14px;line-height:18px;color:var(--text-muted)}
+.small{font-size:var(--text-body);line-height:var(--leading-body);color:var(--color-ash)}
+.hint{font-size:var(--text-caption);line-height:1.6;letter-spacing:var(--tracking-caption);margin-top:var(--spacing-8)}
 
+/* Wash card — muted callout */
 .notice{
-  background:var(--background-secondary);
-  border-left:4px solid var(--yellow-300);
-  border-radius:var(--radius-md);
-  padding:var(--spacing-8) var(--spacing-12);
-  margin-bottom:var(--spacing-16);
+  background:var(--surface-wash);
+  border-radius:var(--radius-wash);
+  padding:var(--spacing-16);
+  margin-bottom:var(--spacing-20);
 }
 
 .hidden{display:none!important}
 
-/* ---------- Responsive ---------- */
-@media (max-width:768px){
-  .wrap{padding:var(--spacing-16) var(--spacing-12)}
-  h1{font-size:24px;line-height:30px}
-  button{min-height:44px}
-  input{height:44px;flex:1 1 7em;width:auto}
-  .board{padding:var(--spacing-4);gap:2px}
+/* ---------- Responsive — boundaries aligned to M2's 600dp / 905dp ---------- */
+@media (max-width:599px){
+  .wrap{padding:var(--spacing-32) var(--spacing-16)}
+  h1{font-size:var(--text-heading);line-height:var(--leading-heading)}
+  input{flex:1 1 7em;width:auto;padding-left:var(--spacing-16)}
+}
+
+/* 905dp+ : laptops and desktops have room for a bigger board */
+@media (min-width:905px){
+  .wrap{max-width:45rem}
+}
+
+/* Phones: the board breaks out of the card so 8 columns stay thumb-sized.
+   At 375px the grid can never reach M2's 48dp (8x48+7 = 391 > 375);
+   this buys ~44px, the iOS target baseline. */
+@media (max-width:480px){
+  #game{margin-left:-12px;margin-right:-12px;padding:var(--spacing-16)}
+  #game .board{
+    margin-left:calc(var(--spacing-16) * -1);
+    margin-right:calc(var(--spacing-16) * -1);
+    width:auto;
+    border-left:0;
+    border-right:0;
+    border-radius:0;
+  }
+}
+
+/* Landscape phones: board beside the panel instead of a tall scroll */
+@media (orientation:landscape) and (max-height:560px){
+  .wrap{max-width:900px;padding:var(--spacing-8) var(--spacing-16)}
+  h1{font-size:var(--text-body);line-height:1.3;margin-bottom:var(--spacing-8)}
+  #game{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr);
+    grid-template-rows:auto auto 1fr auto;
+    column-gap:var(--spacing-20);
+    align-items:start;
+    margin:0;
+    padding:var(--spacing-12);
+  }
+  /* DOM order stays header → score → board → status → actions */
+  #game .board{
+    grid-column:1;
+    grid-row:1 / span 4;
+    height:min(calc(100vh - 76px),420px);
+    width:auto;
+    margin:0;
+    border:1px solid var(--color-hairline);
+    border-radius:var(--radius-wash);
+  }
+  #game .panel-header{grid-column:2;grid-row:1}
+  #game .score{grid-column:2;grid-row:2}
+  #game .status{grid-column:2;grid-row:3;margin-top:0}
+  #game .row{grid-column:2;grid-row:4}
+}
+
+/* Motion signals state change; it must never be the only signal */
+@media (prefers-reduced-motion:reduce){
+  *{
+    transition-duration:0.01ms!important;
+    animation-duration:0.01ms!important;
+    animation-iteration-count:1!important;
+  }
+  /* Stop the pulse outright — a looping animation shortened to 0.01ms flickers */
+  .cell.can::after{animation:none;transform:translate(-50%,-50%) scale(1.12)}
+  .cell.can:active::after{transform:translate(-50%,-50%)}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>⚫ 線上黑白棋 ⚪</h1>
+  <h1>線上黑白棋</h1>
 
   <div id="lobby" class="card">
     <div id="setupWarn" class="small notice hidden">尚未設定 Firebase，目前只能「同機雙人」對戰。</div>
@@ -305,7 +403,8 @@ input::placeholder{color:#87898c;letter-spacing:0}
       <div class="row"><button id="createBtn">建立房間</button></div>
       <div class="mt">
         <label class="input-label" for="codeInput">房間代碼</label>
-        <div class="row"><input id="codeInput" maxlength="5" placeholder="ABC12"><button class="secondary" id="joinBtn">加入房間</button></div>
+        <div class="row"><input id="codeInput" maxlength="5" placeholder="ABC12" autocapitalize="characters" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-describedby="codeHint"><button class="secondary" id="joinBtn">加入房間</button></div>
+        <div id="codeHint" class="small hint">輸入 5 碼房間代碼後按 Enter</div>
       </div>
       <div class="divider"></div>
     </div>
@@ -319,10 +418,10 @@ input::placeholder{color:#87898c;letter-spacing:0}
     </div>
     <div class="score"><span id="sB"></span><span id="sW"></span></div>
     <div id="board" class="board"></div>
-    <div id="status" class="status"></div>
-    <div class="row center">
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+    <div class="row">
       <button id="restartBtn" class="hidden">再來一局</button>
-      <button class="danger" id="leaveBtn">離開</button>
+      <button class="secondary" id="leaveBtn">離開</button>
     </div>
   </div>
 </div>
@@ -332,6 +431,8 @@ input::placeholder{color:#87898c;letter-spacing:0}
 const firebaseConfig = {
   apiKey: "AIzaSyBufcZSBnuBlJqnc3a0ksB5aDZk78HkjGw",
   authDomain: "reversi---online.firebaseapp.com",
+  // 資料庫在 asia-southeast1，不填這行 SDK 會連到 us-central1 而無聲卡住
+  databaseURL: "https://reversi---online-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "reversi---online",
   storageBucket: "reversi---online.firebasestorage.app",
   messagingSenderId: "712601728649",
@@ -353,6 +454,25 @@ if (ONLINE) {
 const $ = id => document.getElementById(id);
 const N = { B: "黑", W: "白" };
 const DIRS = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+
+// ---------- 連線錯誤回報 ----------
+// 連線出問題時一定要讓使用者看到，不要讓按鈕看起來「沒反應」
+function errMsg(e) {
+  const m = String((e && e.message) || e);
+  if (/permission[_ ]denied/i.test(m)) return "資料庫拒絕存取，請檢查 Firebase 安全規則";
+  if (/timeout/i.test(m)) return "連線逾時，請確認 databaseURL 與網路狀態";
+  return "連線失敗：" + m;
+}
+function fail(e) {
+  console.error(e);
+  const msg = errMsg(e);
+  if ($("game").classList.contains("hidden")) alert(msg);
+  else $("status").textContent = msg;
+}
+const withTimeout = (p, ms = 10000) => Promise.race([
+  p,
+  new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), ms))
+]);
 
 // ---------- 遊戲規則 ----------
 function initBoard() {
@@ -395,19 +515,68 @@ function getCid() {
 }
 const cid = getCid();
 
+// ---------- 棋盤 DOM ----------
+// 只建一次，之後只改 class：節點不被重建，CSS transition 才跑得起來，
+// 焦點也才不會在每次重繪時被丟掉。
+const cells = [];
+let focusIdx = 27;
+const ROW = i => Math.floor(i / 8) + 1, COL = i => (i % 8) + 1;
+
+function buildBoard() {
+  const boardEl = $("board");
+  boardEl.innerHTML = "";
+  boardEl.setAttribute("role", "grid");
+  boardEl.setAttribute("aria-label", "黑白棋盤，八乘八");
+  for (let i = 0; i < 64; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.setAttribute("role", "gridcell");
+    cell.tabIndex = -1;
+    const d = document.createElement("div");
+    d.className = "disc";
+    cell.appendChild(d);
+    cell.addEventListener("click", () => play(i));
+    cell.addEventListener("keydown", e => onCellKey(e, i));
+    cell.addEventListener("focus", () => { focusIdx = i; });
+    cells.push(cell);
+    boardEl.appendChild(cell);
+  }
+}
+
+// 方向鍵在格線上移動焦點，Enter／空白鍵落子（roving tabindex）
+function onCellKey(e, i) {
+  const step = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+  if (step) {
+    e.preventDefault();
+    const r = Math.floor(i / 8) + step[0], c = (i % 8) + step[1];
+    if (r < 0 || r > 7 || c < 0 || c > 7) return;
+    focusCell(r * 8 + c);
+    return;
+  }
+  if (e.key === "Enter" || e.key === " ") { e.preventDefault(); play(i); }
+}
+
+function focusCell(i) {
+  focusIdx = i;
+  cells.forEach((c, k) => { c.tabIndex = k === i ? 0 : -1; });
+  cells[i].focus();
+}
+
 // ---------- 畫面 ----------
 function render() {
   if (!state) return;
+  if (!cells.length) buildBoard();
   const b = state.board;
   const myTurn = state.status === "playing" && (mode === "local" || state.turn === myColor);
-  const moves = myTurn ? validMoves(b, state.turn) : [];
-  const boardEl = $("board"); boardEl.innerHTML = "";
+  const moves = new Set(myTurn ? validMoves(b, state.turn) : []);
   for (let i = 0; i < 64; i++) {
-    const cell = document.createElement("div"); cell.className = "cell";
-    if (b[i] !== ".") { const d = document.createElement("div"); d.className = "disc " + b[i]; cell.appendChild(d); }
-    if (i === state.lastMove) cell.classList.add("last");
-    if (moves.includes(i)) { cell.classList.add("can"); cell.onclick = () => play(i); }
-    boardEl.appendChild(cell);
+    const cell = cells[i], can = moves.has(i);
+    cell.classList.toggle("can", can);
+    cell.classList.toggle("last", i === state.lastMove);
+    cell.firstChild.className = b[i] === "." ? "disc" : "disc " + b[i];
+    const what = b[i] === "." ? (can ? "空格，可落子" : "空格") : N[b[i]] + "棋";
+    cell.setAttribute("aria-label", `第 ${ROW(i)} 列第 ${COL(i)} 行，${what}`);
+    cell.tabIndex = i === focusIdx ? 0 : -1;
   }
   const nB = [...b].filter(x => x === "B").length, nW = [...b].filter(x => x === "W").length;
   $("sB").textContent = `⚫ 黑 ${nB}`; $("sW").textContent = `白 ${nW} ⚪`;
@@ -439,6 +608,8 @@ function showGame() {
 
 // ---------- 動作 ----------
 function play(i) {
+  // 每一格都掛了監聽，所以這裡擋掉不能下的格子
+  if (!cells[i] || !cells[i].classList.contains("can")) return;
   if (mode === "local") {
     const ns = applyMove(state, i, state.turn);
     if (ns) { state = ns; render(); }
@@ -448,7 +619,7 @@ function play(i) {
     if (!cur) return cur;
     if (cur.status !== "playing" || cur.turn !== myColor) return;
     return applyMove(cur, i, myColor) || undefined;
-  });
+  }).catch(fail);
 }
 
 function restart() {
@@ -458,7 +629,7 @@ function restart() {
     const p = cur.players || {};
     // 交換顏色，讓雙方輪流先手
     return { board: initBoard(), turn: "B", status: "playing", players: { B: p.W || null, W: p.B || null }, lastMove: -1, note: "" };
-  });
+  }).catch(fail);
 }
 
 function genCode() {
@@ -468,10 +639,15 @@ function genCode() {
 }
 
 async function createRoom() {
-  const code = genCode();
-  await fb.set(fb.ref(db, "rooms/" + code),
-    { board: initBoard(), turn: "B", status: "waiting", players: { B: cid }, lastMove: -1, note: "" });
-  enterRoom(code);
+  const btn = $("createBtn");
+  btn.disabled = true;
+  try {
+    const code = genCode();
+    await withTimeout(fb.set(fb.ref(db, "rooms/" + code),
+      { board: initBoard(), turn: "B", status: "waiting", players: { B: cid }, lastMove: -1, note: "" }));
+    await enterRoom(code);
+  } catch (e) { fail(e); }
+  finally { btn.disabled = false; }
 }
 
 async function enterRoom(code) {
@@ -479,13 +655,15 @@ async function enterRoom(code) {
   if (!code) return;
   roomCode = code; mode = "online";
   roomRef = fb.ref(db, "rooms/" + code);
-  await fb.runTransaction(roomRef, cur => {
-    if (!cur) return cur;
-    cur.players = cur.players || {};
-    if (cur.players.B === cid || cur.players.W === cid) return cur;
-    if (!cur.players.W) { cur.players.W = cid; if (cur.status === "waiting") cur.status = "playing"; return cur; }
-    return; // 已滿，觀戰
-  });
+  try {
+    await withTimeout(fb.runTransaction(roomRef, cur => {
+      if (!cur) return cur;
+      cur.players = cur.players || {};
+      if (cur.players.B === cid || cur.players.W === cid) return cur;
+      if (!cur.players.W) { cur.players.W = cid; if (cur.status === "waiting") cur.status = "playing"; return cur; }
+      return; // 已滿，觀戰
+    }));
+  } catch (e) { fail(e); return; }
   history.replaceState(null, "", "?room=" + code);
   showGame();
   fb.onValue(roomRef, snap => {
@@ -495,7 +673,7 @@ async function enterRoom(code) {
     const p = v.players || {};
     myColor = p.B === cid ? "B" : p.W === cid ? "W" : null;
     render();
-  });
+  }, fail);
 }
 
 async function share() {
@@ -510,9 +688,18 @@ async function share() {
 $("localBtn").onclick = () => { mode = "local"; showGame(); restart(); };
 $("createBtn").onclick = createRoom;
 $("joinBtn").onclick = () => enterRoom($("codeInput").value);
+// Enter 直接加入，不必特地去點按鈕
+$("codeInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); enterRoom($("codeInput").value); }
+});
 $("restartBtn").onclick = restart;
 $("shareBtn").onclick = share;
-$("leaveBtn").onclick = () => { location.href = location.pathname; };
+$("leaveBtn").onclick = () => {
+  // 線上對戰中離開等於棄賽，而且沒得復原 —— 只有這種情況才攔一下
+  const inPlay = mode === "online" && myColor && state && state.status === "playing";
+  if (inPlay && !confirm("離開後對手會沒有對手，確定要離開嗎？")) return;
+  location.href = location.pathname;
+};
 
 if (!db) { $("setupWarn").classList.remove("hidden"); $("onlineBox").classList.add("hidden"); }
 else {
