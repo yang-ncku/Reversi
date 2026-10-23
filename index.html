@@ -4,31 +4,295 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>線上黑白棋</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f4f1ea;--fg:#222;--muted:#777;--board:#2e7d4f;--line:#1f5a38;--hint:rgba(255,255,255,.35);--accent:#e74c3c;--card:#fff}
-@media (prefers-color-scheme:dark){:root{--bg:#1b1b1b;--fg:#eee;--muted:#999;--card:#2a2a2a}}
+:root{
+  /* Backgrounds */
+  --background-primary:#313338;
+  --background-secondary:#2b2d31;
+  --background-secondary-alt:#232428;
+  --background-tertiary:#1e1f22;
+  --background-floating:#111214;
+  --background-modifier-hover:rgba(79,84,92,.16);
+  --background-modifier-active:rgba(79,84,92,.24);
+  --background-modifier-selected:rgba(79,84,92,.32);
+  --background-input:#383a40;
+
+  /* Brand */
+  --brand-500:#5865F2;
+  --brand-560:#4752C4;
+  --brand-600:#3C45A5;
+  --brand-260:#A5B3F0;
+
+  /* Text */
+  --text-normal:#dbdee1;
+  --text-muted:#949ba4;
+  --text-link:#00a8fc;
+  --header-primary:#f2f3f5;
+  --header-secondary:#b5bac1;
+
+  /* Semantic / status */
+  --green-360:#23a55a;
+  --yellow-300:#f0b232;
+  --red-400:#f23f43;
+  --red-430:#da373c;
+  --button-secondary:#4e5058;
+  --button-secondary-hover:#6d6f78;
+  --divider:#3f4147;
+
+  /* Typography */
+  --font-primary:"gg sans","Noto Sans TC","Noto Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --font-display:"Poppins","gg sans","Noto Sans TC",sans-serif;
+
+  /* Spacing */
+  --spacing-4:4px;
+  --spacing-8:8px;
+  --spacing-12:12px;
+  --spacing-16:16px;
+  --spacing-20:20px;
+  --spacing-24:24px;
+
+  /* Radii */
+  --radius-sm:3px;
+  --radius-md:4px;
+  --radius-lg:8px;
+  --radius-round:50%;
+
+  /* Elevation */
+  --elevation-low:0 1px 0 rgba(0,0,0,.2);
+  --elevation-medium:0 4px 8px rgba(0,0,0,.2);
+  --elevation-high:0 8px 16px rgba(0,0,0,.24);
+}
+
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"PingFang TC","Noto Sans TC",sans-serif;display:flex;justify-content:center}
-.wrap{width:100%;max-width:480px;padding:16px}
-h1{font-size:1.4rem;margin:.2em 0 .6em;text-align:center}
-.card{background:var(--card);border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
-button{font:inherit;padding:10px 14px;border-radius:8px;border:0;background:#333;color:#fff;cursor:pointer}
-button.secondary{background:transparent;color:var(--fg);border:1px solid var(--muted)}
-input{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--muted);width:8em;text-transform:uppercase;background:transparent;color:var(--fg)}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.mt{margin-top:10px}
-.board{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:var(--line);padding:2px;border-radius:8px;aspect-ratio:1;width:100%}
-.cell{background:var(--board);display:flex;align-items:center;justify-content:center}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--background-tertiary);
+  color:var(--text-normal);
+  font-family:var(--font-primary);
+  font-size:16px;
+  line-height:22px;
+  display:flex;
+  justify-content:center;
+  -webkit-font-smoothing:antialiased;
+}
+
+.wrap{width:100%;max-width:480px;padding:var(--spacing-24) var(--spacing-16) var(--spacing-20)}
+
+h1{
+  font-family:var(--font-display);
+  font-size:28px;
+  line-height:34px;
+  font-weight:700;
+  color:var(--header-primary);
+  margin:0 0 var(--spacing-20);
+  text-align:center;
+}
+
+/* ---------- Surfaces ---------- */
+.card{
+  background:var(--background-primary);
+  border-radius:var(--radius-lg);
+  padding:var(--spacing-16);
+  margin-bottom:var(--spacing-12);
+  box-shadow:var(--elevation-medium);
+}
+
+.panel-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:var(--spacing-8);
+  padding-bottom:var(--spacing-12);
+  margin-bottom:var(--spacing-16);
+  border-bottom:1px solid var(--divider);
+}
+
+#roomInfo{
+  font-size:16px;
+  font-weight:600;
+  line-height:20px;
+  color:var(--header-primary);
+  display:flex;
+  align-items:center;
+  gap:var(--spacing-8);
+  min-width:0;
+}
+#roomInfo::before{
+  content:"";
+  flex:0 0 auto;
+  width:10px;
+  height:10px;
+  border-radius:var(--radius-round);
+  background:var(--green-360);
+  box-shadow:0 0 0 3px var(--background-primary);
+}
+
+/* ---------- Buttons ---------- */
+button{
+  font-family:inherit;
+  font-size:14px;
+  font-weight:500;
+  line-height:16px;
+  padding:2px var(--spacing-16);
+  min-width:60px;
+  min-height:38px;
+  border:none;
+  border-radius:var(--radius-sm);
+  background:var(--brand-500);
+  color:#fff;
+  cursor:pointer;
+  transition:background-color 170ms ease;
+}
+button:hover{background:var(--brand-560)}
+button:active{background:var(--brand-600)}
+button:focus-visible{outline:2px solid var(--brand-260);outline-offset:2px}
+button:disabled{opacity:.5;cursor:not-allowed}
+
+button.secondary{background:var(--button-secondary)}
+button.secondary:hover{background:var(--button-secondary-hover)}
+button.secondary:active{background:var(--button-secondary)}
+
+button.danger{background:transparent;color:var(--text-muted)}
+button.danger:hover{background:var(--red-400);color:#fff}
+button.danger:active{background:var(--red-430)}
+
+/* ---------- Form ---------- */
+.input-label{
+  display:block;
+  color:var(--header-secondary);
+  font-size:12px;
+  font-weight:700;
+  line-height:16px;
+  letter-spacing:.02em;
+  text-transform:uppercase;
+  margin-bottom:var(--spacing-8);
+}
+
+input{
+  font-family:inherit;
+  font-size:16px;
+  line-height:20px;
+  height:40px;
+  padding:10px;
+  width:8em;
+  border:none;
+  border-radius:var(--radius-sm);
+  background:var(--background-tertiary);
+  color:var(--text-normal);
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+input:focus{outline:none}
+input::placeholder{color:#87898c;letter-spacing:0}
+
+.row{display:flex;gap:var(--spacing-8);flex-wrap:wrap;align-items:center}
+.row.center{justify-content:center}
+.mt{margin-top:var(--spacing-12)}
+
+.divider{
+  height:1px;
+  background:var(--divider);
+  margin:var(--spacing-16) 0;
+}
+
+/* ---------- Board ---------- */
+.board{
+  display:grid;
+  grid-template-columns:repeat(8,1fr);
+  gap:3px;
+  background:var(--background-tertiary);
+  padding:var(--spacing-8);
+  border-radius:var(--radius-lg);
+  aspect-ratio:1;
+  width:100%;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
+}
+
+.cell{
+  background:var(--background-input);
+  border-radius:var(--radius-md);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:background-color 150ms ease;
+}
 .cell.can{cursor:pointer}
-.cell.can::after{content:"";width:28%;height:28%;border-radius:50%;background:var(--hint)}
-.disc{width:82%;height:82%;border-radius:50%;transition:background .25s}
-.disc.B{background:#111}
-.disc.W{background:#f5f5f5;box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
-.cell.last .disc{outline:3px solid var(--accent);outline-offset:-3px}
-.score{display:flex;justify-content:space-between;font-weight:600;margin:10px 0}
-.status{text-align:center;min-height:1.5em;margin:10px 0}
-.small{font-size:.85rem;color:var(--muted)}
+.cell.can::after{
+  content:"";
+  width:26%;
+  height:26%;
+  border-radius:var(--radius-round);
+  background:var(--brand-500);
+  opacity:.65;
+  transition:transform 150ms ease,opacity 150ms ease;
+}
+.cell.can:hover{background:#41434a}
+.cell.can:hover::after{transform:scale(1.25);opacity:1}
+
+.disc{
+  width:82%;
+  height:82%;
+  border-radius:var(--radius-round);
+  transition:background-color 170ms ease;
+}
+.disc.B{background:var(--background-floating);box-shadow:inset 0 2px 0 rgba(255,255,255,.08)}
+.disc.W{background:var(--header-primary);box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.cell.last .disc{outline:3px solid var(--yellow-300);outline-offset:-3px}
+
+/* ---------- Score pills ---------- */
+.score{
+  display:flex;
+  justify-content:space-between;
+  gap:var(--spacing-8);
+  margin-bottom:var(--spacing-12);
+}
+.score span{
+  background:var(--background-secondary);
+  border:1px solid transparent;
+  border-radius:var(--radius-lg);
+  padding:var(--spacing-4) 10px;
+  font-size:14px;
+  font-weight:500;
+  line-height:20px;
+  color:var(--text-normal);
+}
+
+/* ---------- Status ---------- */
+.status{
+  text-align:center;
+  min-height:22px;
+  margin:var(--spacing-12) 0 var(--spacing-16);
+  font-size:14px;
+  font-weight:500;
+  line-height:22px;
+  color:var(--header-secondary);
+}
+
+.small{font-size:14px;line-height:18px;color:var(--text-muted)}
+
+.notice{
+  background:var(--background-secondary);
+  border-left:4px solid var(--yellow-300);
+  border-radius:var(--radius-md);
+  padding:var(--spacing-8) var(--spacing-12);
+  margin-bottom:var(--spacing-16);
+}
+
 .hidden{display:none!important}
+
+/* ---------- Responsive ---------- */
+@media (max-width:768px){
+  .wrap{padding:var(--spacing-16) var(--spacing-12)}
+  h1{font-size:24px;line-height:30px}
+  button{min-height:44px}
+  input{height:44px;flex:1 1 7em;width:auto}
+  .board{padding:var(--spacing-4);gap:2px}
+}
 </style>
 </head>
 <body>
@@ -36,25 +300,29 @@ input{font:inherit;padding:10px;border-radius:8px;border:1px solid var(--muted);
   <h1>⚫ 線上黑白棋 ⚪</h1>
 
   <div id="lobby" class="card">
-    <div id="setupWarn" class="small hidden">尚未設定 Firebase，目前只能「同機雙人」對戰。</div>
+    <div id="setupWarn" class="small notice hidden">尚未設定 Firebase，目前只能「同機雙人」對戰。</div>
     <div id="onlineBox">
       <div class="row"><button id="createBtn">建立房間</button></div>
-      <div class="row mt"><input id="codeInput" maxlength="5" placeholder="房間代碼"><button class="secondary" id="joinBtn">加入房間</button></div>
+      <div class="mt">
+        <label class="input-label" for="codeInput">房間代碼</label>
+        <div class="row"><input id="codeInput" maxlength="5" placeholder="ABC12"><button class="secondary" id="joinBtn">加入房間</button></div>
+      </div>
+      <div class="divider"></div>
     </div>
-    <div class="row mt"><button class="secondary" id="localBtn">同機雙人</button></div>
+    <div class="row"><button class="secondary" id="localBtn">同機雙人</button></div>
   </div>
 
   <div id="game" class="card hidden">
-    <div class="row" style="justify-content:space-between">
+    <div class="panel-header">
       <div id="roomInfo"></div>
       <button class="secondary" id="shareBtn">分享連結</button>
     </div>
     <div class="score"><span id="sB"></span><span id="sW"></span></div>
     <div id="board" class="board"></div>
     <div id="status" class="status"></div>
-    <div class="row" style="justify-content:center">
+    <div class="row center">
       <button id="restartBtn" class="hidden">再來一局</button>
-      <button class="secondary" id="leaveBtn">離開</button>
+      <button class="danger" id="leaveBtn">離開</button>
     </div>
   </div>
 </div>
